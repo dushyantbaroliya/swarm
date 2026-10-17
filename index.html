@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Swarm: a whiteboard with no server</title>
+    <meta
+      name="description"
+      content="A peer-to-peer whiteboard built on a hand-written CRDT, with a simulated network you can break: add latency, drop packets, cut links, and watch replicas disagree and then converge."
+    />
+    <meta property="og:title" content="Swarm: a whiteboard with no server" />
+    <meta
+      property="og:description"
+      content="Hand-written CRDTs, a network you can break, and replicas that always agree in the end."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='9' cy='10' r='5' fill='%23e5484d'/><circle cx='23' cy='10' r='5' fill='%2312a594'/><circle cx='16' cy='23' r='5' fill='%233e63dd'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <line x1="9" y1="10" x2="23" y2="10" /><line x1="9" y1="10" x2="16" y2="23" /><line x1="23" y1="10" x2="16" y2="23" />
+          <circle cx="9" cy="10" r="4.5" fill="#e5484d" /><circle cx="23" cy="10" r="4.5" fill="#12a594" /><circle cx="16" cy="23" r="4.5" fill="#3e63dd" />
+        </svg>
+        <span>Swarm</span>
+      </div>
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="lab" aria-selected="true">Lab</button>
+        <button role="tab" data-tab="live" aria-selected="false">Live P2P</button>
+      </nav>
+      <a class="src" href="https://github.com/dushyantbaroliya/swarm" target="_blank" rel="noopener">Source</a>
+    </header>
+
+    <section class="intro">
+      <h1>A whiteboard with no server, and a network you can break.</h1>
+      <p>
+        Every card below is a separate replica with its own copy of the board. They only talk through the
+        simulated network in the side panel. Draw on any of them, then add latency, drop packets, or slice
+        the network in two. They will disagree for a while. They will always agree in the end.
+      </p>
+    </section>
+
+    <!-- ================================================================ lab -->
+    <main id="lab" class="lab">
+      <div class="stage">
+        <div class="toolbar" role="toolbar" aria-label="Drawing tools">
+          <div class="group" id="tools">
+            <button data-tool="select" title="Select and move (V)" class="on">
+              <svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.6L10 19z" /></svg>
+            </button>
+            <button data-tool="rect" title="Rectangle (R)"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2" /></svg></button>
+            <button data-tool="ellipse" title="Ellipse (O)"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="6.5" /></svg></button>
+            <button data-tool="arrow" title="Arrow (A)"><svg viewBox="0 0 24 24"><path d="M4 18L19 5M11 5h8v8" /></svg></button>
+            <button data-tool="pen" title="Pen (P)"><svg viewBox="0 0 24 24"><path d="M3 17c3-1 4-8 7-8s2 7 5 7 3-5 6-6" /></svg></button>
+            <button data-tool="sticky" title="Sticky note, double-click to edit (S)">
+              <svg viewBox="0 0 24 24"><path d="M5 4h14v11l-5 5H5z M14 20v-5h5" /></svg>
+            </button>
+            <button data-tool="erase" title="Erase (E)"><svg viewBox="0 0 24 24"><path d="M8 19h11M5 15l9-9 5 5-8 8H8z" /></svg></button>
+          </div>
+          <div class="group" id="swatches"></div>
+          <div class="group actions">
+            <button id="undo" class="text" title="Undo on the active board (Ctrl+Z)">Undo</button>
+            <button id="race" class="text accent" title="Every peer edits the same shape at the same instant">Race!</button>
+            <button id="monkey" class="text" aria-pressed="false" title="Random edits on every peer">Chaos monkey</button>
+            <button id="add-peer" class="text" title="Add a replica">+ Peer</button>
+          </div>
+        </div>
+        <div class="peers" id="peers"></div>
+      </div>
+
+      <aside class="side">
+        <section class="panel status" id="status" aria-live="polite">
+          <div class="verdict" id="verdict">Converged</div>
+          <div class="hashes" id="hashes"></div>
+          <dl class="stats">
+            <div><dt>in flight</dt><dd id="st-flight">0</dd></div>
+            <div><dt>delivered</dt><dd id="st-delivered">0</dd></div>
+            <div><dt>lost</dt><dd id="st-lost">0</dd></div>
+            <div><dt>conflicts</dt><dd id="st-conflicts">0</dd></div>
+          </dl>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Network</h3>
+            <span class="hint">drag to slice links</span>
+          </div>
+          <canvas id="topology" class="topology" aria-label="Network topology. Drag across it to cut links."></canvas>
+          <div class="row">
+            <button id="split" class="text">Split in two</button>
+            <button id="heal" class="text">Heal</button>
+            <button id="freeze" class="text" aria-pressed="false">Freeze</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h3>Chaos</h3></div>
+          <div class="presets" id="presets">
+            <button class="text" data-preset="calm">Calm</button>
+            <button class="text" data-preset="wifi">Bad wifi</button>
+            <button class="text" data-preset="hostile">Hostile</button>
+          </div>
+          <label class="slider"><span>Latency</span><input type="range" id="c-latency" min="0" max="2000" step="10" /><output></output></label>
+          <label class="slider"><span>Jitter</span><input type="range" id="c-jitter" min="0" max="2000" step="10" /><output></output></label>
+          <label class="slider"><span>Packet loss</span><input type="range" id="c-drop" min="0" max="0.9" step="0.01" /><output></output></label>
+          <label class="slider"><span>Duplicates</span><input type="range" id="c-dup" min="0" max="0.5" step="0.01" /><output></output></label>
+          <label class="slider"><span>Gossip every</span><input type="range" id="c-gossip" min="200" max="5000" step="100" /><output></output></label>
+        </section>
+
+        <section class="panel log-panel">
+          <div class="panel-head"><h3>Op log</h3><span class="hint" id="op-total"></span></div>
+          <ol class="log" id="log"></ol>
+        </section>
+      </aside>
+    </main>
+
+    <!-- =============================================================== live -->
+    <main id="live" class="live" hidden>
+      <div class="live-board">
+        <div class="peer-card solo">
+          <div class="peer-head">
+            <span class="dot" id="live-dot"></span><b id="live-name"></b>
+            <span class="vv" id="live-peers">no peers yet</span>
+          </div>
+          <div class="board-wrap" id="live-wrap"></div>
+        </div>
+      </div>
+      <aside class="side">
+        <section class="panel">
+          <div class="panel-head"><h3>Connect a real peer</h3></div>
+          <p class="note">
+            This board syncs over a WebRTC data channel, browser to browser. There is no signaling server:
+            you swap two codes by hand (chat, email, QR, carrier pigeon). After that, no server ever sees
+            your data.
+          </p>
+          <div class="steps">
+            <div class="step">
+              <h4>Start a connection</h4>
+              <button id="rtc-create" class="text accent">Create invite code</button>
+              <textarea id="rtc-offer" readonly placeholder="Your invite code appears here"></textarea>
+              <button id="rtc-copy-offer" class="text">Copy invite</button>
+              <h4>Then paste their reply</h4>
+              <textarea id="rtc-answer-in" placeholder="Paste the reply code"></textarea>
+              <button id="rtc-accept" class="text">Connect</button>
+            </div>
+            <div class="step">
+              <h4>Or join someone</h4>
+              <textarea id="rtc-offer-in" placeholder="Paste an invite code"></textarea>
+              <button id="rtc-join" class="text accent">Make reply code</button>
+              <textarea id="rtc-answer" readonly placeholder="Send this reply back"></textarea>
+              <button id="rtc-copy-answer" class="text">Copy reply</button>
+            </div>
+          </div>
+          <p class="note" id="rtc-status">Not connected.</p>
+        </section>
+      </aside>
+    </main>
+
+    <!-- ========================================================== explainer -->
+    <section class="explain">
+      <h2>How it works</h2>
+      <div class="cards">
+        <article>
+          <span class="n">01</span>
+          <h3>Every edit is an op with a clock</h3>
+          <p>
+            Moving a shape doesn't send the board. It sends one small op: <code>set ana:3.x = 240</code>,
+            stamped with a Lamport clock and the author's id. That stamp gives every edit ever made a single
+            order that all peers agree on, without asking anyone.
+          </p>
+        </article>
+        <article>
+          <span class="n">02</span>
+          <h3>Last writer wins, per field</h3>
+          <p>
+            Each field of each shape is its own register, and the higher stamp wins. So if you move a box
+            while I recolour it, both edits survive. Only true collisions (two people moving the same box
+            at once) need a winner, and every replica picks the same one. That's the amber flash.
+          </p>
+        </article>
+        <article>
+          <span class="n">03</span>
+          <h3>Text is a sequence, not a value</h3>
+          <p>
+            Sticky notes use RGA, a sequence CRDT. Each character remembers which character it was typed
+            after. Two people typing at the same spot get their words placed side by side, never
+            interleaved letter by letter, in the same order on every replica.
+          </p>
+        </article>
+        <article>
+          <span class="n">04</span>
+          <h3>Gossip heals partitions</h3>
+          <p>
+            Ops are pushed immediately, but pushes get lost. So peers also gossip version vectors (“I have
+            ana up to 41, bao up to 17”). Anyone holding what you lack sends it, even ops they didn't write.
+            Cut a link and the ops route around it.
+          </p>
+        </article>
+        <article>
+          <span class="n">05</span>
+          <h3>Deletes are just another field</h3>
+          <p>
+            There is no delete op. Deleting sets <code>deleted: true</code>, and undo sets it back. That
+            keeps the whole model to three ops and makes "move vs delete" races resolve like any other
+            write.
+          </p>
+        </article>
+        <article>
+          <span class="n">06</span>
+          <h3>Proven by 10,000+ random histories</h3>
+          <p>
+            Property-based tests generate random edit histories across four peers, deliver every op in a
+            random order with duplicates, and require byte-identical state at the end. Another suite runs
+            the full network with loss, jitter and partitions, and requires convergence after it heals.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="foot">
+      Built from scratch by <b>Dushyant Baroliya</b>. No CRDT libraries, no server, no framework.
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -371,6 +371,8 @@ canvas.board {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 10px;
   margin-bottom: 8px;
 }
 
@@ -621,6 +623,17 @@ canvas.board {
 .cards p {
   color: #3d424f;
   font-size: 14.5px;
+}
+
+.cards .tag {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  background: rgba(21, 23, 28, 0.05);
+  padding: 2px 7px;
+  border-radius: 5px;
 }
 
 .foot {

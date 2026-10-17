@@ -4,15 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
-    <title>Swarm: a whiteboard with no server</title>
+    <title>Swarm: draw together, even on terrible internet</title>
     <meta
       name="description"
-      content="A peer-to-peer whiteboard built on a hand-written CRDT, with a simulated network you can break: add latency, drop packets, cut links, and watch replicas disagree and then converge."
+      content="A drawing board you share with friends, with no big computer in the middle. Make the internet bad on purpose and watch the boards always end up matching."
     />
-    <meta property="og:title" content="Swarm: a whiteboard with no server" />
+    <meta property="og:title" content="Swarm: draw together, even on terrible internet" />
     <meta
       property="og:description"
-      content="Hand-written CRDTs, a network you can break, and replicas that always agree in the end."
+      content="Shared drawing boards that pass little notes to stay the same. Lose the notes, cut the wires, and they still end up matching."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://dushyantbaroliya.github.io/swarm/" />
@@ -34,18 +34,19 @@
         <span>Swarm</span>
       </div>
       <nav class="tabs" role="tablist">
-        <button role="tab" data-tab="lab" aria-selected="true">Lab</button>
-        <button role="tab" data-tab="live" aria-selected="false">Live P2P</button>
+        <button role="tab" data-tab="lab" aria-selected="true">Play here</button>
+        <button role="tab" data-tab="live" aria-selected="false">Play with a friend</button>
       </nav>
-      <a class="src" href="https://github.com/dushyantbaroliya/swarm" target="_blank" rel="noopener">Source</a>
+      <a class="src" href="https://github.com/dushyantbaroliya/swarm" target="_blank" rel="noopener">Code</a>
     </header>
 
     <section class="intro">
-      <h1>A whiteboard with no server, and a network you can break.</h1>
+      <h1>Draw together. Even when the internet is terrible.</h1>
       <p>
-        Every card below is a separate replica with its own copy of the board. They only talk through the
-        simulated network in the side panel. Draw on any of them, then add latency, drop packets, or slice
-        the network in two. They will disagree for a while. They will always agree in the end.
+        Each box below is a different person's drawing board. The boards stay the same by sending each
+        other little notes, with no big computer in the middle. Draw on one and watch it show up on the
+        others. Then make the internet bad on purpose: slow it down, lose notes, cut the wires. The boards
+        will get mixed up for a bit, but they always end up matching again.
       </p>
     </section>
 
@@ -54,24 +55,24 @@
       <div class="stage">
         <div class="toolbar" role="toolbar" aria-label="Drawing tools">
           <div class="group" id="tools">
-            <button data-tool="select" title="Select and move (V)" class="on">
+            <button data-tool="select" title="Grab and move things (V)" class="on">
               <svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.6L10 19z" /></svg>
             </button>
-            <button data-tool="rect" title="Rectangle (R)"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2" /></svg></button>
-            <button data-tool="ellipse" title="Ellipse (O)"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="6.5" /></svg></button>
+            <button data-tool="rect" title="Box (R)"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2" /></svg></button>
+            <button data-tool="ellipse" title="Circle (O)"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="6.5" /></svg></button>
             <button data-tool="arrow" title="Arrow (A)"><svg viewBox="0 0 24 24"><path d="M4 18L19 5M11 5h8v8" /></svg></button>
             <button data-tool="pen" title="Pen (P)"><svg viewBox="0 0 24 24"><path d="M3 17c3-1 4-8 7-8s2 7 5 7 3-5 6-6" /></svg></button>
-            <button data-tool="sticky" title="Sticky note, double-click to edit (S)">
+            <button data-tool="sticky" title="Sticky note. Click twice on it to write (S)">
               <svg viewBox="0 0 24 24"><path d="M5 4h14v11l-5 5H5z M14 20v-5h5" /></svg>
             </button>
-            <button data-tool="erase" title="Erase (E)"><svg viewBox="0 0 24 24"><path d="M8 19h11M5 15l9-9 5 5-8 8H8z" /></svg></button>
+            <button data-tool="erase" title="Rubber (E)"><svg viewBox="0 0 24 24"><path d="M8 19h11M5 15l9-9 5 5-8 8H8z" /></svg></button>
           </div>
           <div class="group" id="swatches"></div>
           <div class="group actions">
-            <button id="undo" class="text" title="Undo on the active board (Ctrl+Z)">Undo</button>
-            <button id="race" class="text accent" title="Every peer edits the same shape at the same instant">Race!</button>
-            <button id="monkey" class="text" aria-pressed="false" title="Random edits on every peer">Chaos monkey</button>
-            <button id="add-peer" class="text" title="Add a replica">+ Peer</button>
+            <button id="undo" class="text" title="Take back your last move (Ctrl+Z)">Undo</button>
+            <button id="race" class="text accent" title="Everyone changes the same thing at the exact same time">Everyone grab it!</button>
+            <button id="monkey" class="text" aria-pressed="false" title="A silly monkey scribbles on every board">Silly monkey</button>
+            <button id="add-peer" class="text" title="Add another person">+ Person</button>
           </div>
         </div>
         <div class="peers" id="peers"></div>
@@ -79,45 +80,45 @@
 
       <aside class="side">
         <section class="panel status" id="status" aria-live="polite">
-          <div class="verdict" id="verdict">Converged</div>
-          <div class="hashes" id="hashes"></div>
+          <div class="verdict" id="verdict">All boards match</div>
+          <div class="hashes" id="hashes" title="Each badge is a fingerprint of one board. Same colour means the boards look exactly the same."></div>
           <dl class="stats">
-            <div><dt>in flight</dt><dd id="st-flight">0</dd></div>
-            <div><dt>delivered</dt><dd id="st-delivered">0</dd></div>
-            <div><dt>lost</dt><dd id="st-lost">0</dd></div>
-            <div><dt>conflicts</dt><dd id="st-conflicts">0</dd></div>
+            <div><dt>notes on the way</dt><dd id="st-flight">0</dd></div>
+            <div><dt>notes arrived</dt><dd id="st-delivered">0</dd></div>
+            <div><dt>notes lost</dt><dd id="st-lost">0</dd></div>
+            <div><dt>ties settled</dt><dd id="st-conflicts">0</dd></div>
           </dl>
         </section>
 
         <section class="panel">
           <div class="panel-head">
-            <h3>Network</h3>
-            <span class="hint">drag to slice links</span>
+            <h3>Who can talk to who</h3>
+            <span class="hint">drag across a line to cut it</span>
           </div>
-          <canvas id="topology" class="topology" aria-label="Network topology. Drag across it to cut links."></canvas>
+          <canvas id="topology" class="topology" aria-label="Map of who can talk to who. Drag across a line to cut it."></canvas>
           <div class="row">
-            <button id="split" class="text">Split in two</button>
-            <button id="heal" class="text">Heal</button>
-            <button id="freeze" class="text" aria-pressed="false">Freeze</button>
+            <button id="split" class="text" title="Cut the group into two halves that can't talk">Split in two</button>
+            <button id="heal" class="text" title="Fix every cut line">Fix all lines</button>
+            <button id="freeze" class="text" aria-pressed="false" title="Stop all notes from moving">Pause notes</button>
           </div>
         </section>
 
         <section class="panel">
-          <div class="panel-head"><h3>Chaos</h3></div>
+          <div class="panel-head"><h3>Make the internet bad</h3></div>
           <div class="presets" id="presets">
-            <button class="text" data-preset="calm">Calm</button>
-            <button class="text" data-preset="wifi">Bad wifi</button>
-            <button class="text" data-preset="hostile">Hostile</button>
+            <button class="text" data-preset="calm">Good</button>
+            <button class="text" data-preset="wifi">Wobbly wifi</button>
+            <button class="text" data-preset="hostile">Terrible</button>
           </div>
-          <label class="slider"><span>Latency</span><input type="range" id="c-latency" min="0" max="2000" step="10" /><output></output></label>
-          <label class="slider"><span>Jitter</span><input type="range" id="c-jitter" min="0" max="2000" step="10" /><output></output></label>
-          <label class="slider"><span>Packet loss</span><input type="range" id="c-drop" min="0" max="0.9" step="0.01" /><output></output></label>
-          <label class="slider"><span>Duplicates</span><input type="range" id="c-dup" min="0" max="0.5" step="0.01" /><output></output></label>
-          <label class="slider"><span>Gossip every</span><input type="range" id="c-gossip" min="200" max="5000" step="100" /><output></output></label>
+          <label class="slider" title="How long a note takes to arrive"><span>Slow</span><input type="range" id="c-latency" min="0" max="2000" step="10" /><output></output></label>
+          <label class="slider" title="Some notes take extra long, so they can arrive out of order"><span>Shuffle</span><input type="range" id="c-jitter" min="0" max="2000" step="10" /><output></output></label>
+          <label class="slider" title="How many notes get lost on the way"><span>Lose notes</span><input type="range" id="c-drop" min="0" max="0.9" step="0.01" /><output></output></label>
+          <label class="slider" title="How many notes arrive twice"><span>Double notes</span><input type="range" id="c-dup" min="0" max="0.5" step="0.01" /><output></output></label>
+          <label class="slider" title="How often boards ask each other: what did I miss?"><span>Catch up</span><input type="range" id="c-gossip" min="200" max="5000" step="100" /><output></output></label>
         </section>
 
         <section class="panel log-panel">
-          <div class="panel-head"><h3>Op log</h3><span class="hint" id="op-total"></span></div>
+          <div class="panel-head"><h3>What just happened</h3><span class="hint" id="op-total"></span></div>
           <ol class="log" id="log"></ol>
         </section>
       </aside>
@@ -129,105 +130,105 @@
         <div class="peer-card solo">
           <div class="peer-head">
             <span class="dot" id="live-dot"></span><b id="live-name"></b>
-            <span class="vv" id="live-peers">no peers yet</span>
+            <span class="vv" id="live-peers">no friends here yet</span>
           </div>
           <div class="board-wrap" id="live-wrap"></div>
         </div>
       </div>
       <aside class="side">
         <section class="panel">
-          <div class="panel-head"><h3>Connect a real peer</h3></div>
+          <div class="panel-head"><h3>Draw with a friend</h3></div>
           <p class="note">
-            This board syncs over a WebRTC data channel, browser to browser. There is no signaling server:
-            you swap two codes by hand (chat, email, QR, carrier pigeon). After that, no server ever sees
-            your data.
+            This board talks straight to your friend's computer. No big computer in the middle sees your
+            drawing. To say hello, you swap two secret codes (send them by chat, email, anything).
           </p>
           <div class="steps">
             <div class="step">
-              <h4>Start a connection</h4>
-              <button id="rtc-create" class="text accent">Create invite code</button>
-              <textarea id="rtc-offer" readonly placeholder="Your invite code appears here"></textarea>
-              <button id="rtc-copy-offer" class="text">Copy invite</button>
-              <h4>Then paste their reply</h4>
-              <textarea id="rtc-answer-in" placeholder="Paste the reply code"></textarea>
+              <h4>1. Make a code and send it to your friend</h4>
+              <button id="rtc-create" class="text accent">Make my code</button>
+              <textarea id="rtc-offer" readonly placeholder="Your code shows up here"></textarea>
+              <button id="rtc-copy-offer" class="text">Copy my code</button>
+              <h4>2. Paste the code your friend sends back</h4>
+              <textarea id="rtc-answer-in" placeholder="Paste your friend's code here"></textarea>
               <button id="rtc-accept" class="text">Connect</button>
             </div>
             <div class="step">
-              <h4>Or join someone</h4>
-              <textarea id="rtc-offer-in" placeholder="Paste an invite code"></textarea>
-              <button id="rtc-join" class="text accent">Make reply code</button>
-              <textarea id="rtc-answer" readonly placeholder="Send this reply back"></textarea>
-              <button id="rtc-copy-answer" class="text">Copy reply</button>
+              <h4>Got a code from a friend? Paste it here</h4>
+              <textarea id="rtc-offer-in" placeholder="Paste your friend's code here"></textarea>
+              <button id="rtc-join" class="text accent">Make my answer code</button>
+              <textarea id="rtc-answer" readonly placeholder="Send this code back to your friend"></textarea>
+              <button id="rtc-copy-answer" class="text">Copy answer code</button>
             </div>
           </div>
-          <p class="note" id="rtc-status">Not connected.</p>
+          <p class="note" id="rtc-status">Not connected yet.</p>
         </section>
       </aside>
     </main>
 
     <!-- ========================================================== explainer -->
     <section class="explain">
-      <h2>How it works</h2>
+      <h2>How it works, in simple words</h2>
       <div class="cards">
         <article>
           <span class="n">01</span>
-          <h3>Every edit is an op with a clock</h3>
+          <h3>Everyone has their own copy</h3>
           <p>
-            Moving a shape doesn't send the board. It sends one small op: <code>set ana:3.x = 240</code>,
-            stamped with a Lamport clock and the author's id. That stamp gives every edit ever made a single
-            order that all peers agree on, without asking anyone.
+            Each box is like a kid with their own drawing. There is no "real" drawing kept somewhere else.
+            Every kid just tries to keep their copy the same as everyone else's.
           </p>
+          <span class="tag">Grown-up name: replicas, no server</span>
         </article>
         <article>
           <span class="n">02</span>
-          <h3>Last writer wins, per field</h3>
+          <h3>They pass little notes</h3>
           <p>
-            Each field of each shape is its own register, and the higher stamp wins. So if you move a box
-            while I recolour it, both edits survive. Only true collisions (two people moving the same box
-            at once) need a winner, and every replica picks the same one. That's the amber flash.
+            When you move a box, your board doesn't send the whole picture. It sends a tiny note like "I
+            moved the blue box". Each note has a number on it, so everyone knows which note came first.
           </p>
+          <span class="tag">Grown-up name: operations with Lamport clocks</span>
         </article>
         <article>
           <span class="n">03</span>
-          <h3>Text is a sequence, not a value</h3>
+          <h3>A fair rule for ties</h3>
           <p>
-            Sticky notes use RGA, a sequence CRDT. Each character remembers which character it was typed
-            after. Two people typing at the same spot get their words placed side by side, never
-            interleaved letter by letter, in the same order on every replica.
+            If two kids move the same box at the same time, who wins? Everyone uses the same simple rule
+            (the higher number wins), so every board picks the same winner. The yellow glow means a tie
+            just got settled.
           </p>
+          <span class="tag">Grown-up name: last-writer-wins registers</span>
         </article>
         <article>
           <span class="n">04</span>
-          <h3>Gossip heals partitions</h3>
+          <h3>Words don't get jumbled</h3>
           <p>
-            Ops are pushed immediately, but pushes get lost. So peers also gossip version vectors (“I have
-            ana up to 41, bao up to 17”). Anyone holding what you lack sends it, even ops they didn't write.
-            Cut a link and the ops route around it.
+            Each letter remembers which letter it was typed after. So if two kids type in the same sticky
+            note at once, their words sit side by side instead of getting mixed into gibberish.
           </p>
+          <span class="tag">Grown-up name: RGA sequence CRDT</span>
         </article>
         <article>
           <span class="n">05</span>
-          <h3>Deletes are just another field</h3>
+          <h3>"What did I miss?"</h3>
           <p>
-            There is no delete op. Deleting sets <code>deleted: true</code>, and undo sets it back. That
-            keeps the whole model to three ops and makes "move vs delete" races resolve like any other
-            write.
+            Notes can get lost. So every now and then, boards ask each other "what did I miss?" and fill in
+            the gaps. If the line between two kids is cut, a third kid can pass the notes along.
           </p>
+          <span class="tag">Grown-up name: gossip with version vectors</span>
         </article>
         <article>
           <span class="n">06</span>
-          <h3>Proven by 10,000+ random histories</h3>
+          <h3>We checked it 10,000 times</h3>
           <p>
-            Property-based tests generate random edit histories across four peers, deliver every op in a
-            random order with duplicates, and require byte-identical state at the end. Another suite runs
-            the full network with loss, jitter and partitions, and requires convergence after it heals.
+            A computer made up 10,000 messy games: notes lost, notes late, notes twice, lines cut. Every
+            single time, all the boards ended up exactly the same.
           </p>
+          <span class="tag">Grown-up name: property-based testing</span>
         </article>
       </div>
     </section>
 
     <footer class="foot">
-      Built from scratch by <b>Dushyant Baroliya</b>. No CRDT libraries, no server, no framework.
+      Made from scratch by <b>Dushyant Baroliya</b>. No helper libraries, no server.
     </footer>
 
     <script type="module" src="/src/main.ts"></script>
